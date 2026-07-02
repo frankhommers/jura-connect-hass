@@ -150,6 +150,8 @@ class JuraCoordinator(DataUpdateCoordinator[MachineSnapshot]):
             "strength": None,
             "water_ml": None,
             "temp": None,
+            "milk": None,
+            "milk_foam": None,
         }
         if self.brew_definition is not None and self.brew_definition.products:
             self.brew_selection["product"] = self.brew_definition.products[0].code

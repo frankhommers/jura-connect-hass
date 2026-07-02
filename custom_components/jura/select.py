@@ -108,6 +108,10 @@ def _brew_select_entities(coordinator: JuraCoordinator, config_entry: ConfigEntr
         entities.append(BrewWaterSelect(coordinator, config_entry))
     if any(product.arg("TEMPERATURE") for product in definition.products):
         entities.append(BrewTempSelect(coordinator, config_entry))
+    if any(product.arg("MILK_AMOUNT") for product in definition.products):
+        entities.append(BrewMilkSelect(coordinator, config_entry))
+    if any(product.arg("MILK_FOAM_AMOUNT") for product in definition.products):
+        entities.append(BrewMilkFoamSelect(coordinator, config_entry))
     return entities
 
 
@@ -332,3 +336,29 @@ class BrewWaterSelect(_BrewParamSelect):
 
     def _option_for_value(self, arg: ProductArg, value: int) -> str | None:
         return str(value)
+
+
+class BrewMilkSelect(BrewWaterSelect):
+    """Milk (liquid phase) amount for the next brew, or Factory Default.
+
+    Same MinMax ``value // step`` encoding as water (payload byte 4, ``F5``,
+    machine-specific units — usually seconds of dispensing); only offered
+    while the selected product actually takes milk, so it is unavailable for
+    e.g. espresso or hot water.
+    """
+
+    _arg_kind = "MILK_AMOUNT"
+    _selection_key = "milk"
+    _name_suffix = "Milk"
+
+
+class BrewMilkFoamSelect(BrewWaterSelect):
+    """Milk foam amount for the next brew, or Factory Default.
+
+    Same MinMax ``value // step`` encoding as water (payload byte 5, ``F6``);
+    only offered while the selected product actually takes milk foam.
+    """
+
+    _arg_kind = "MILK_FOAM_AMOUNT"
+    _selection_key = "milk_foam"
+    _name_suffix = "Milk Foam"

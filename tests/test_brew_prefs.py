@@ -16,17 +16,29 @@ from custom_components.jura.brew import (
 )
 
 
-def test_brew_params_are_the_three_recipe_axes():
-    assert BREW_PARAMS == ("strength", "water_ml", "temp")
+def test_brew_params_are_the_five_recipe_axes():
+    assert BREW_PARAMS == ("strength", "water_ml", "temp", "milk", "milk_foam")
 
 
 def test_product_prefs_missing_product_is_all_factory_default():
-    assert product_prefs({}, "03") == {"strength": None, "water_ml": None, "temp": None}
+    assert product_prefs({}, "03") == {
+        "strength": None,
+        "water_ml": None,
+        "temp": None,
+        "milk": None,
+        "milk_foam": None,
+    }
 
 
 def test_product_prefs_fills_missing_params_with_none():
     prefs = {"03": {"water_ml": 130}}
-    assert product_prefs(prefs, "03") == {"strength": None, "water_ml": 130, "temp": None}
+    assert product_prefs(prefs, "03") == {
+        "strength": None,
+        "water_ml": 130,
+        "temp": None,
+        "milk": None,
+        "milk_foam": None,
+    }
 
 
 def test_remember_then_load_reproduces_value():
@@ -58,4 +70,6 @@ def test_selection_for_product_includes_product_code():
         "strength": 2,
         "water_ml": 130,
         "temp": 1,
+        "milk": None,
+        "milk_foam": None,
     }

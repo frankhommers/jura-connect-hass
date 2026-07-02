@@ -66,6 +66,8 @@ class JuraBrewButton(JuraEntity, ButtonEntity):
             strength=selection.get("strength"),
             water_ml=selection.get("water_ml"),
             temp=selection.get("temp"),
+            milk=selection.get("milk"),
+            milk_foam=selection.get("milk_foam"),
         )
         recipe = payload.removeprefix("@TP:")
         await self.coordinator.run_command("brew", [recipe], allow_destructive=True)

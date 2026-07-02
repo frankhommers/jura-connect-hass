@@ -175,6 +175,66 @@ def test_milk_foam_amount_f6_default_encoded() -> None:
     assert build_start_command(product) == "@TP:08000000001600000100000000000000"
 
 
+def test_milk_foam_amount_override_encoded() -> None:
+    """An explicit milk_foam override lands in byte 5 as ``value // step``.
+
+    Cappuccino-style product with milk foam 1..45 step 1: milk_foam=10 -> 0x0A.
+    Water must stay at its own default — the MinMax args are independent.
+    """
+    product = _product(
+        "04",
+        [
+            ProductArg(kind="WATER_AMOUNT", argument="F4", index=3, default=120, min=25, max=240, step=5),
+            ProductArg(kind="MILK_FOAM_AMOUNT", argument="F6", index=5, default=22, min=1, max=45, step=1),
+        ],
+    )
+    payload = build_start_command(product, milk_foam=10)
+    assert _byte(payload, 5) == "0A"
+    assert _byte(payload, 3) == "18"  # water default 120 // 5
+
+
+def test_milk_amount_f5_default_and_override_encoded() -> None:
+    """MILK_AMOUNT (F5, index 4) — the milk *liquid* phase, distinct from foam.
+
+    EF545 (Z10) Milkcoffee: milk default 7, range 1..45 step 1. Previously the
+    kind was not parsed at all, so byte 4 went out as 0x00 — a from-panel
+    milk coffee would skip its milk phase entirely.
+    """
+    product = _product(
+        "05",
+        [
+            ProductArg(kind="MILK_AMOUNT", argument="F5", index=4, default=7, min=1, max=45, step=1),
+            ProductArg(kind="MILK_FOAM_AMOUNT", argument="F6", index=5, default=3, min=0, max=45, step=1),
+        ],
+    )
+    defaults = build_start_command(product)
+    assert _byte(defaults, 4) == "07"
+    assert _byte(defaults, 5) == "03"
+    # Overrides steer each phase independently.
+    both = build_start_command(product, milk=20, milk_foam=10)
+    assert _byte(both, 4) == "14"
+    assert _byte(both, 5) == "0A"
+
+
+def test_milk_foam_amount_override_clamps_to_range() -> None:
+    """Milk overrides clamp to the product's [Min, Max] like water does."""
+    product = _product(
+        "04",
+        [ProductArg(kind="MILK_FOAM_AMOUNT", argument="F6", index=5, default=22, min=1, max=45, step=1)],
+    )
+    assert _byte(build_start_command(product, milk_foam=999), 5) == "2D"  # max 45
+    assert _byte(build_start_command(product, milk_foam=0), 5) == "01"  # min 1
+
+
+def test_milk_override_ignored_by_water_only_product() -> None:
+    """Milk overrides must not leak into products without milk args."""
+    product = _product(
+        "02",
+        [ProductArg(kind="WATER_AMOUNT", argument="F4", index=3, default=45, min=25, max=240, step=5)],
+    )
+    assert build_start_command(product, milk=15, milk_foam=30) == build_start_command(product)
+
+
 def test_bypass_f10_default_encoded() -> None:
     """BYPASS (F10, index 9) brews at its default: 40 // 5 -> 0x08."""
     product = _product(

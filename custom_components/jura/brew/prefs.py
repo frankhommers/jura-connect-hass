@@ -23,8 +23,8 @@ the actual persistence + staged-selection wiring on top).
 
 from __future__ import annotations
 
-# The three adjustable recipe axes a preference can pin per product.
-BREW_PARAMS: tuple[str, ...] = ("strength", "water_ml", "temp")
+# The adjustable recipe axes a preference can pin per product.
+BREW_PARAMS: tuple[str, ...] = ("strength", "water_ml", "temp", "milk", "milk_foam")
 
 
 def product_prefs(brew_prefs: dict[str, dict], code: str) -> dict[str, int | None]:

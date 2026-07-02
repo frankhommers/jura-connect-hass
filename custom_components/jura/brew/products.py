@@ -7,8 +7,9 @@ encoding was validated live on a JURA E6 (a real coffee brewed from it):
     byte arg.index  each argument value, where index = Fnum - 1:
                       COFFEE_STRENGTH F3 -> 2   value = chosen level byte
                       WATER_AMOUNT    F4 -> 3   value = ml // step
-                      TEMPERATURE     F7 -> 6   value = chosen item byte
+                      MILK_AMOUNT     F5 -> 4   value = amount // step
                       MILK_FOAM_AMOUNT F6 -> 5  value = amount // step
+                      TEMPERATURE     F7 -> 6   value = chosen item byte
                       BYPASS          F10 -> 9  value = ml // step
     byte 8          0x01 (fixed)
     byte 15         0x00 (grinder default)
@@ -68,6 +69,8 @@ def _arg_value(
     strength: int | None,
     water_ml: int | None,
     temp: int | None,
+    milk: int | None,
+    milk_foam: int | None,
 ) -> int | None:
     """Resolve one argument's byte value, honouring (clamped) overrides then defaults.
 
@@ -86,9 +89,17 @@ def _arg_value(
         return _clamp_to_items(temp, arg.items)
     if arg.kind in MINMAX_ARG_KINDS:
         # All MinMax args encode as ``value // step`` (``_encode_water`` is the
-        # shared helper). Only water is user-overridable today; milk-foam amount
-        # (F6) and bypass (F10) brew at their default instead of staying 0x00.
-        override = water_ml if arg.kind == "WATER_AMOUNT" else None
+        # shared helper). Water, milk amount and milk-foam amount are
+        # user-overridable; bypass (F10) brews at its default instead of
+        # staying 0x00.
+        if arg.kind == "WATER_AMOUNT":
+            override = water_ml
+        elif arg.kind == "MILK_AMOUNT":
+            override = milk
+        elif arg.kind == "MILK_FOAM_AMOUNT":
+            override = milk_foam
+        else:
+            override = None
         return _encode_water(arg, override)
     return None
 
@@ -99,14 +110,16 @@ def build_start_command(
     strength: int | None = None,
     water_ml: int | None = None,
     temp: int | None = None,
+    milk: int | None = None,
+    milk_foam: int | None = None,
 ) -> str:
     """Encode the ``@TP:`` start command for ``product``.
 
     Unset keyword overrides (``None``) fall back to each argument's XML/factory
     default (Factory Default); explicit overrides are clamped to the argument's
-    valid range/ITEM set. Water is encoded as ``ml // step``. Every byte is
-    finally capped at ``0xFF`` so the payload can never overflow. Returns
-    ``"@TP:" + <32 uppercase hex>``.
+    valid range/ITEM set. Water, milk and milk foam encode as ``value // step``.
+    Every byte is finally capped at ``0xFF`` so the payload can never overflow.
+    Returns ``"@TP:" + <32 uppercase hex>``.
     """
     payload = ["00"] * _PAYLOAD_BYTES
     payload[0] = f"{int(product.code, 16):02X}"
@@ -114,7 +127,7 @@ def build_start_command(
     for arg in product.args:
         if not 0 <= arg.index < _PAYLOAD_BYTES:
             continue
-        value = _arg_value(arg, strength=strength, water_ml=water_ml, temp=temp)
+        value = _arg_value(arg, strength=strength, water_ml=water_ml, temp=temp, milk=milk, milk_foam=milk_foam)
         if value is None:
             continue
         payload[arg.index] = f"{max(0, min(value, _MAX_BYTE)):02X}"

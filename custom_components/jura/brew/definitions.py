@@ -30,9 +30,10 @@ from dataclasses import dataclass, field
 DEFINITIONS_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "definitions"))
 
 # Product child tags we encode into the start command. MinMax args carry
-# Value/Min/Max/Step and encode as ``value // step`` (water, milk-foam amount,
-# bypass); strength/temperature instead pick a named ITEM byte.
-MINMAX_ARG_KINDS = ("WATER_AMOUNT", "MILK_FOAM_AMOUNT", "BYPASS")
+# Value/Min/Max/Step and encode as ``value // step`` (water, milk amount,
+# milk-foam amount, bypass); strength/temperature instead pick a named ITEM
+# byte.
+MINMAX_ARG_KINDS = ("WATER_AMOUNT", "MILK_AMOUNT", "MILK_FOAM_AMOUNT", "BYPASS")
 ARG_KINDS = ("COFFEE_STRENGTH", "TEMPERATURE", *MINMAX_ARG_KINDS)
 
 _TYPE_RE = re.compile(r"(EF\d+\w*)")

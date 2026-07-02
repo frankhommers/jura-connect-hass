@@ -98,6 +98,29 @@ brew:
           min: 1
           max: 3
           mode: box
+    milk:
+      name: Milk
+      description: >-
+        Optional milk (liquid phase) amount (model-specific units, usually
+        seconds of dispensing). Only used by products with a milk phase.
+        Omit for the product's factory default. Clamped to the product's
+        valid range.
+      selector:
+        number:
+          min: 0
+          max: 45
+          mode: box
+    milk_foam:
+      name: Milk foam
+      description: >-
+        Optional milk foam amount (model-specific units, usually seconds of
+        dispensing). Only used by milk products. Omit for the product's
+        factory default. Clamped to the product's valid range.
+      selector:
+        number:
+          min: 0
+          max: 45
+          mode: box
     recipe:
       name: Recipe (advanced)
       description: >-

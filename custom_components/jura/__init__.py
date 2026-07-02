@@ -68,9 +68,10 @@ if _HAS_HOMEASSISTANT:
     )
 
     # ``brew`` accepts either a friendly ``product`` (name from the machine's
-    # product table; strength/water_ml/temperature override the XML defaults)
-    # or a raw ``recipe`` (the 16-byte hex payload, legacy path). Exactly one
-    # of ``product`` / ``recipe`` is required — enforced in the handler.
+    # product table; strength/water_ml/temperature/milk/milk_foam override the
+    # XML defaults) or a raw ``recipe`` (the 16-byte hex payload, legacy path).
+    # Exactly one of ``product`` / ``recipe`` is required — enforced in the
+    # handler.
     BREW_SCHEMA = _BASE_TARGET_SCHEMA.extend(
         {
             vol.Optional("recipe"): str,
@@ -78,6 +79,8 @@ if _HAS_HOMEASSISTANT:
             vol.Optional("strength"): vol.Coerce(int),
             vol.Optional("water_ml"): vol.Coerce(int),
             vol.Optional("temperature"): vol.Coerce(int),
+            vol.Optional("milk"): vol.Coerce(int),
+            vol.Optional("milk_foam"): vol.Coerce(int),
         }
     )
 
@@ -176,6 +179,8 @@ def _register_services(hass: HomeAssistant) -> None:
                 strength=call.data.get("strength"),
                 water_ml=call.data.get("water_ml"),
                 temp=call.data.get("temperature"),
+                milk=call.data.get("milk"),
+                milk_foam=call.data.get("milk_foam"),
             )
             recipe = payload.removeprefix("@TP:")
         elif not recipe:
